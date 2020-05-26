@@ -6,12 +6,9 @@ library(stringr)
 library(tidyr)
 library(lubridate)
 library(shinydashboard)
-
-covid19 =  read.csv('Covid19.csv')%>%
-    mutate(dateRep = dmy(dateRep))
-cases = pivot_wider(covid19, dateRep, names_from = countriesAndTerritories, values_from = cases)
-cases[is.na(cases)] = 0
-cases = cases[order(cases$dateRep),]
+library(plotly)
+library(ggplot2)
+source('CovidAnalysis.R')
 
 # Define UI for application that draws a Map
 shinyUI(dashboardPage(
@@ -30,7 +27,8 @@ shinyUI(dashboardPage(
                     timeFormat = '%d-%m' 
                     #animate = animationOptions(interval = 5000, F),
                     ),
-        submitButton('Submit')), 
+        submitButton('Submit')
+), 
 
         # Show a plot of the generated distribution
     dashboardBody(
@@ -41,6 +39,11 @@ shinyUI(dashboardPage(
             leafletOutput("CovidPlot"),
             textOutput("Selection"),
             width = 12)),
+        fluidRow(box(
+            selectInput('CountriesSel', NULL, choices = c('Please Select countries to plot' = '',
+                                                          sort(str_replace_all(names(DoubleTime[,-1]),
+                                                                               '_', ' '))), multiple = TRUE),
+            plotlyOutput('DoubleTimePlt'))),
         fluidRow( box(
             h4('Sources:'),
             p(strong(em('Number of cases of corona virus: ')),
@@ -49,8 +52,10 @@ shinyUI(dashboardPage(
             p(strong(em(' Shape file of countries: ')),
               a('ArcGIS Hub',
                 href = 'https://hub.arcgis.com/datasets/2b93b06dc0dc4e809d3c8db5cb96ba69_0')),
-            h4('Author: Valdrich J Fernandes'),
-            p('valdrichfernandes@gmail.com'),
-            width = 12)) 
+            h4('Author:'),
+            p(em('Valdrich J Fernandes')),
+            p(em('valdrichfernandes@gmail.com')),
+            width = 12))
+
     )
 ))

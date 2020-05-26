@@ -1,13 +1,13 @@
-library(leaflet)
-library(shiny)
-library(rgdal)
-library(dplyr)
-library(stringr)
-library(tidyr)
-library(lubridate)
-library(shinydashboard)
-
-source('CovidAnalysis.R')
+# library(leaflet)
+# library(shiny)
+# library(rgdal)
+# library(dplyr)
+# library(stringr)
+# library(tidyr)
+# library(lubridate)
+# library(shinydashboard)
+# library(ggplot2)
+# library(plotly)
 
 ##  defining a pallet
 pal = colorNumeric('RdYlGn', domain = range(DoubleTime[,-1]))
@@ -38,15 +38,15 @@ shinyServer(function(input, output) {
             addTiles()%>%
             addPolygons(weight = 1, 
                         smoothFactor = 0.5,
-                       color = "white",
-                       opacity = 0.7,
+                        color = "white",
+                        opacity = 0.7,
                         fillColor = pal(DataPlotOrdered()$TwoTime),
                         fillOpacity = 0.8,
-                        label = Labels(), 
-                       labelOptions = labelOptions(style = list('front-wright'='normal',
-                                                                padding = "3px 8px"),
-                                                   textsize = '15px'))%>%
-            addLegend("topright",pal, DataPlotOrdered()$TwoTime, 
+                        label = Labels(),
+                        labelOptions = labelOptions(style = list('front-wright'='normal',
+                                                                 padding = "3px 8px"),
+                                                    textsize = '15px'))%>%
+            addLegend("topright",pal, DataPlotOrdered()$TwoTime,
                       labFormat = labelFormat(transform = function(x) round(10^x), suffix = ' days'),
                       title = 'Doubling Time')
     })
@@ -54,6 +54,21 @@ shinyServer(function(input, output) {
     output$Selection = renderText({
         paste0("Doubling time (in days) of the number of COVID-19 cases on: ",
                strftime(DoubleTime[which(DoubleTime$dateRep==input$Date),1], format = "%d-%m-%Y"))
+    })
+    CountryCorrect = reactive({
+        if(identical(input$CountriesSel, NULL)) return(NULL)
+        str_replace_all(input$CountriesSel, pattern = ' ', replacement = '_')
+    })
+    output$DoubleTimePlt = renderPlotly({
+        if(identical(input$CountriesSel, NULL)) return(NULL)
+        p2 = ggplot(filter(DoubleTimeGather,Country %in% CountryCorrect()), aes(x= days, y = 10^DoublingTime, colour = Country))+
+            geom_line(size = 1)+
+            theme(legend.position = 'bottom')+ 
+            labs(x = 'Days (since 150 cases)', y = 'Doubling Time (days)')+
+            theme_bw()+
+            scale_y_log10()
+        ggplotly(p2)%>%
+            toWebGL()
     })
 
 })

@@ -84,9 +84,33 @@ names(DoubleTime)[c(26, 38, 49, 52, 54, 55, 68,
                                                         "Russian Federation", "Timor-Leste",  "Turks and Caicos Islands",
                                                         "Tanzania", "United States", "US Virgin Islands"), ' ', '_')
 
+names(totCasesMA)[c(26, 38, 49, 52, 54, 55, 68,
+                    87, 90, 150, 161, 191, 196,
+                    201, 202, 203)] = str_replace_all(c("Bonaire","Cabo Verde", countriesShp$COUNTRY[grep('Ivoi', countriesShp$COUNTRY)],
+                                                        "Curacao", "Czech Republic", "Congo DRC", "Falkland Islands",
+                                                        "Guinea-Bissau", "Vatican City", "Palestinian Territory",
+                                                        "Russian Federation", "Timor-Leste",  "Turks and Caicos Islands",
+                                                        "Tanzania", "United States", "US Virgin Islands"), ' ', '_')
+
 ## Subsetting the shapefile to the countries in DoubleTime
 countriesShp = subset(countriesShp, is.element(countriesShp$COUNTRY, str_replace_all(names(DoubleTime), '_', ' ')))
 
 ## matching the order of the countries to match the shapefile
 indexes = sapply(countriesShp$COUNTRY, function(x) which(x==str_replace_all(names(DoubleTime), '_', ' ')))
 DoubleTime = DoubleTime[,c(1,indexes)]
+
+gathering = function(dataframe, parameter = 'parameter'){
+    Gathered = NULL
+    for (i in names(dataframe)[-1]){
+        ind = which(totCasesMA[-(1:5),i]>150)
+        if(length(ind)<2) {
+            next
+        }
+        Gathered = rbind(Gathered, data.frame(days = 1:length(ind),
+                                              para = dataframe[,i][ind],
+                                              Country = rep(i, times = length(ind))))
+    }
+    if(!identical(Gathered, NULL))    names(Gathered)[2] = parameter
+    Gathered
+}
+DoubleTimeGather = gathering(DoubleTime, 'DoublingTime')
