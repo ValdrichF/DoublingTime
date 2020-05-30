@@ -5,15 +5,13 @@ date: "5/28/2020"
 output:     
     ioslides_presentation:
         widescreen: true
-        smaller: true
-
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
-## Introduction
+## Introduction {class=smaller}
 
 Most of us can't make intuative sense of an exponential spread but diseases spread exponentially. 
 
@@ -23,7 +21,7 @@ Multipliers such as R~0~ (R-naught) do a better job at describing the spread, bu
 
 There must be a better way of conveying the facts. Maybe Doubling time?
 
-## Doubling time | Merits and demerits {.columns-2}
+## Doubling time | Merits and demerits {.columns-2 class=smaller}
 
 **Time for the number of cases to double**
 
@@ -49,7 +47,7 @@ Demerits:
 
 <br>
 
-## Plot / Map {.columns-2}
+## Plot / Map {.columns-2 class=smaller}
 ```{r, fig.cap= 'Doubling time of COVID-19 in China and Italy. The vertical lines indicates 2 weeks since announcement of lockdown', out.height = '450px', out.width= '450px'}
 library(dplyr, quietly = T, warn.conflicts = F)
 library(stringr, quietly = T, warn.conflicts = F)
@@ -127,7 +125,7 @@ ggarrange(p, p2, nrow = 2, common.legend = TRUE)
 
 - After Lockdown; Drop in number of cases but doubling time has just started increasing
 
-## Summary {.bigger}
+## Summary {class=bigger}
 
 <div class = "centered">
 **Early action is more effective than a late reaction**
@@ -139,4 +137,4 @@ ggarrange(p, p2, nrow = 2, common.legend = TRUE)
 
 - It does a better job at informing citizens of the severity
 
-- Can help identify countries at a higher risk
+- Can help identify countries that are and/or will be at a higher risk 
