@@ -138,3 +138,7 @@ ggarrange(p, p2, nrow = 2, common.legend = TRUE)
 - It does a better job at informing citizens of the severity
 
 - Can help identify countries that are and/or will be at a higher risk 
+
+**Source:** *[European Centre for Disease Prevention and Control](https://www.ecdc.europa.eu/en/publications-data/download-todays-data-geographic-distribution-covid-19-cases-worldwide)*
+
+**[Shiny web app](http://fernandesv.shinyapps.io/DoublingTimeCOVID19/)**
