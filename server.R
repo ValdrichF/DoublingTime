@@ -1,18 +1,7 @@
-# library(leaflet)
-# library(shiny)
-# library(rgdal)
-# library(dplyr)
-# library(stringr)
-# library(tidyr)
-# library(lubridate)
-# library(shinydashboard)
-# library(ggplot2)
-# library(plotly)
-
 ##  defining a pallet
 pal = colorNumeric('RdYlGn', domain = range(DoubleTime[,-1]))
 # Define server logic required to draw a histogram
-shinyServer(function(input, output) {
+shinyServer(function(input, output, session) {
     ## Subset the data based on the slider output
     DataPlot = reactive({
         a = data.frame(t(DoubleTime[which(DoubleTime$dateRep==input$Date),-1]))
@@ -28,7 +17,7 @@ shinyServer(function(input, output) {
     ## defining the labels for each country in the map
     Labels = reactive({
         paste('<p>',DataPlotOrdered()$CountryName, '</p>',
-              '<p>', 'Doubling time: ', round(10^DataPlotOrdered()$TwoTime, 0), ' days','</p>', sep = '')%>%
+              '<p>', 'Doubling time: ', round(10^DataPlotOrdered()$TwoTime, 1), ' days','</p>', sep = '')%>%
         lapply(htmltools::HTML)
     })
     # draw the map
@@ -55,20 +44,24 @@ shinyServer(function(input, output) {
         paste0("Doubling time (in days) of the number of COVID-19 cases on: ",
                strftime(DoubleTime[which(DoubleTime$dateRep==input$Date),1], format = "%d-%m-%Y"))
     })
+    # Replace _ with a space in the name of the countries selected to match the data
     CountryCorrect = reactive({
         if(identical(input$CountriesSel, NULL)) return(NULL)
         str_replace_all(input$CountriesSel, pattern = ' ', replacement = '_')
     })
+    # Plot the Doubling time
     output$DoubleTimePlt = renderPlotly({
         if(identical(input$CountriesSel, NULL)) return(NULL)
-        p2 = ggplot(filter(DoubleTimeGather,Country %in% CountryCorrect()), aes(x= days, y = 10^DoublingTime, colour = Country))+
-            geom_line(size = 1)+
+        p2 = ggplot(filter(DoubleTimeGather,Country %in% CountryCorrect()))+
+            geom_line(aes(x= days, y = 10^DoublingTime, colour = Country), size = 1)+
             theme(legend.position = 'bottom')+ 
             labs(x = 'Days (since 150 cases)', y = 'Doubling Time (days)')+
             theme_bw()+
             scale_y_log10()
-        ggplotly(p2)%>%
-            toWebGL()
+        height = session$clientData$output_p_height
+        width = session$clientData$output_p_width
+        ggplotly(p2, height = height, width = width)%>%
+            toWebGL() # faster rendering in browsers
     })
 
 })

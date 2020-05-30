@@ -51,8 +51,8 @@ DoubleTime = log10(2)/log10(B)%>%
 DoubleTime[which((DoubleTime>365.25*2)|(DoubleTime<0), arr.ind = T)] = 365.25*2
 
 ## to understand the negative numbers 
-x = seq(0.001, 2, length.out = 100)
-plot(x, log10(2)/log10(x), type = 'l', ylim = c(-10,10))
+# x = seq(0.001, 2, length.out = 100)
+# plot(x, log10(2)/log10(x), type = 'l', ylim = c(-10,10))
 
 DoubleTime = cbind(cases[-1,1], DoubleTime)
 
@@ -76,21 +76,22 @@ if(!dir.exists('TM_WORLD_BORDERS-0.3')) {
     unzip('TM_WORLD_BORDERS-0.3.zip', exdir = './TM_WORLD_BORDERS-0.3')
 }
 countriesShp = readOGR('./TM_WORLD_BORDERS-0.3/World_Countries__Generalized_.shp')
-names(DoubleTime)[c(26, 38, 49, 52, 54, 55, 68,
-                    87, 90, 150, 161, 191, 196,
-                    201, 202, 203)] = str_replace_all(c("Bonaire","Cabo Verde", countriesShp$COUNTRY[grep('Ivoi', countriesShp$COUNTRY)],
-                                                        "Curacao", "Czech Republic", "Congo DRC", "Falkland Islands",
-                                                        "Guinea-Bissau", "Vatican City", "Palestinian Territory",
-                                                        "Russian Federation", "Timor-Leste",  "Turks and Caicos Islands",
-                                                        "Tanzania", "United States", "US Virgin Islands"), ' ', '_')
+# NEeds correction
+patterns = c('Bona', 'Ver', 'Ivo', 'Cur', 'Cze', '^D.*Congo', 'Falkland', 'Guinea_B', 'Holy', 'pale',
+             'Russia', 'Timor', 'Turks', 'Tanzania', 'America', 's_Virgin')
+indexes = mapply(grep, pattern = patterns, MoreArgs = list(x = names(DoubleTime), ignore.case = TRUE))
+names(DoubleTime)[indexes] = str_replace_all(c("Bonaire","Cabo Verde", countriesShp$COUNTRY[grep('Ivoi', countriesShp$COUNTRY)],
+                                               "Curacao", "Czech Republic", "Congo DRC", "Falkland Islands",
+                                               "Guinea-Bissau", "Vatican City", "Palestinian Territory",
+                                               "Russian Federation", "Timor-Leste",  "Turks and Caicos Islands",
+                                               "Tanzania", "United States", "US Virgin Islands"), ' ', '_')
 
-names(totCasesMA)[c(26, 38, 49, 52, 54, 55, 68,
-                    87, 90, 150, 161, 191, 196,
-                    201, 202, 203)] = str_replace_all(c("Bonaire","Cabo Verde", countriesShp$COUNTRY[grep('Ivoi', countriesShp$COUNTRY)],
-                                                        "Curacao", "Czech Republic", "Congo DRC", "Falkland Islands",
-                                                        "Guinea-Bissau", "Vatican City", "Palestinian Territory",
-                                                        "Russian Federation", "Timor-Leste",  "Turks and Caicos Islands",
-                                                        "Tanzania", "United States", "US Virgin Islands"), ' ', '_')
+indexes = mapply(grep, pattern = patterns, MoreArgs = list(x = names(totCasesMA), ignore.case = TRUE))
+names(totCasesMA)[indexes] = str_replace_all(c("Bonaire","Cabo Verde", countriesShp$COUNTRY[grep('Ivoi', countriesShp$COUNTRY)],
+                                               "Curacao", "Czech Republic", "Congo DRC", "Falkland Islands",
+                                               "Guinea-Bissau", "Vatican City", "Palestinian Territory",
+                                               "Russian Federation", "Timor-Leste",  "Turks and Caicos Islands",
+                                               "Tanzania", "United States", "US Virgin Islands"), ' ', '_')
 
 ## Subsetting the shapefile to the countries in DoubleTime
 countriesShp = subset(countriesShp, is.element(countriesShp$COUNTRY, str_replace_all(names(DoubleTime), '_', ' ')))
