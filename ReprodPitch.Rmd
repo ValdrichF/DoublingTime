@@ -141,4 +141,4 @@ ggarrange(p, p2, nrow = 2, common.legend = TRUE)
 
 **Source:** *[European Centre for Disease Prevention and Control](https://www.ecdc.europa.eu/en/publications-data/download-todays-data-geographic-distribution-covid-19-cases-worldwide)*
 
-**[Shiny web app](http://fernandesv.shinyapps.io/DoublingTimeCOVID19/)**
+**[Shiny web app: Spread of a disease: Coveying exponential data](http://fernandesv.shinyapps.io/DoublingTimeCOVID19/)**
