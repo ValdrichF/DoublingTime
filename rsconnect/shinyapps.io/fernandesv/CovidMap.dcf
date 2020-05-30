@@ -1,0 +1,13 @@
+name: CovidMap
+title: CovidMap
+username:
+account: fernandesv
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 2345462
+bundleId: 3181827
+url: https://fernandesv.shinyapps.io/CovidMap/
+when: 1590243772.41604
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: countries.geojson|CountryCoord.csv|DoubleTime.csv

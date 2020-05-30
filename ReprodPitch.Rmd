@@ -1,0 +1,142 @@
+---
+title: "Spread of a disease: Coveying exponential data"
+author: "Valdrich Fernandes"
+date: "5/28/2020"
+output:     
+    ioslides_presentation:
+        widescreen: true
+        smaller: true
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Introduction
+
+Most of us can't make intuative sense of an exponential spread but diseases spread exponentially. 
+
+A simple depiction of the number of cases of a disease, while easy to understand doesn't speak much about the severity of the situation. 
+
+Multipliers such as R~0~ (R-naught) do a better job at describing the spread, but it fails at conveying the idea to general population.
+
+There must be a better way of conveying the facts. Maybe Doubling time?
+
+## Doubling time | Merits and demerits {.columns-2}
+
+**Time for the number of cases to double**
+
+Merits:
+
+- More intuative as larger numbers; means that it takes longer to double. Slower spread
+
+- Represents exponential spread and its severity; better than the number of cases
+
+- Can be calculated on a daily bases (after smoothing, like average of previous week)
+
+- Better at predicting
+
+<br>
+<br>
+Demerits:
+
+- Slower to react to decrease in spread than the number of cases
+
+- Prevelance of the disease is not represented
+
+- Not widely adopted; might not be understandable at first glance
+
+<br>
+
+## Plot / Map {.columns-2}
+```{r, fig.cap= 'Doubling time of COVID-19 in China and Italy. The vertical lines indicates 2 weeks since announcement of lockdown', out.height = '450px', out.width= '450px'}
+library(dplyr, quietly = T, warn.conflicts = F)
+library(stringr, quietly = T, warn.conflicts = F)
+library(tidyr, quietly = T, warn.conflicts = F)
+library(lubridate, quietly = T, warn.conflicts = F)
+library(ggplot2, quietly = T, warn.conflicts = F)
+library(ggpubr, quietly = T, warn.conflicts = F)
+
+# download.file('https://opendata.ecdc.europa.eu/covid19/casedistribution/csv', 'Covid19.csv')
+covid19 =  read.csv('Covid19.csv')
+cases = pivot_wider(covid19, dateRep, names_from = countriesAndTerritories, values_from = cases)%>%
+    mutate(dateRep = dmy(dateRep))
+cases[is.na(cases)] = 0
+cases = cases[order(cases$dateRep),]
+
+ma = function(x, n = 5){
+    stats::filter(x,rep(1 / n, n), sides = 1)
+}
+
+totCases = cbind(cases[,1],cumsum(cases[,-1]))
+totCasesMA = apply(totCases[,-1], 2, ma)%>%
+    as.data.frame%>%
+    +1
+totCasesMA = cbind(cases[,1],totCasesMA)
+
+totCasesThresh = apply(totCasesMA[,-1], 2, function(x) x[which(x>50)])
+totCasesThresh = totCasesThresh[lengths(totCasesThresh)>1]
+
+CalcB = function(x, timelag = 1){
+    1+diff(x,timelag)/x[(timelag+1):length(x)]
+}
+
+B = sapply(totCasesThresh, CalcB)
+DoubleTime = sapply(B, function(b)log(2)/log10(b))
+DoubleTime = DoubleTime[lengths(DoubleTime)>30]
+
+gathering = function(.list, parameter = 'parameter'){
+    Gathered = NULL
+    for (i in c('Italy', 'China')){
+        Gathered = rbind(Gathered, data.frame(days = 1:lengths(.list[i]),
+                                              para = unlist(.list[i], use.names = F),
+                                              Country = rep(i, times = lengths(.list[i]))))
+    }
+    names(Gathered)[2] = parameter
+    Gathered
+}
+
+DoubleTimeGather = gathering(DoubleTime, 'DoubleTime')
+LockdownIt = which(totCasesThresh$Italy < 4970&totCasesThresh$Italy > 4969)+14
+LockdownCh = which(totCasesThresh$China < 540&totCasesThresh$China > 530)+14
+p = ggplot(DoubleTimeGather, aes(days, DoubleTime, colour = Country))+
+    geom_line(size = 1)+
+    theme(legend.position = 'bottom')+ 
+    labs(x = 'Days since 150 cases', y = 'Doubling time (days)')+
+#    scale_y_log10()+
+    coord_cartesian(ylim = c(1 ,800))+
+    geom_vline(aes(xintercept = LockdownIt, colour = 'Italy'), linetype = 'dashed')+
+    geom_vline(aes(xintercept = LockdownCh, colour = 'China'), linetype = 'dashed')+
+    theme_bw()
+totCasesGather = sapply(totCasesThresh, diff)%>%
+    gathering('Cases')
+p2 = ggplot(totCasesGather, aes(days, Cases, colour = Country))+
+    geom_line(size = 1)+
+    theme(legend.position = 'bottom')+ 
+    labs(x = 'Days since 150 cases', y = 'Confirmed Cases')+
+#    scale_y_log10()+
+#    coord_cartesian(ylim = c(1 ,800))+
+    geom_vline(aes(xintercept = LockdownIt, colour = 'Italy'), linetype = 'dashed')+
+    geom_vline(aes(xintercept = LockdownCh, colour = 'China'), linetype = 'dashed')+
+    theme_bw()
+ggarrange(p, p2, nrow = 2, common.legend = TRUE)
+```
+
+- At the start; Few cases but short doubling time
+
+- After Lockdown; Drop in number of cases but doubling time has just started increasing
+
+## Summary {.bigger}
+
+<div class = "centered">
+**Early action is more effective than a late reaction**
+</div>
+
+- Doubling time can convey the severity of an exponential spread
+
+- It can help inform government decisions during few cases
+
+- It does a better job at informing citizens of the severity
+
+- Can help identify countries at a higher risk
