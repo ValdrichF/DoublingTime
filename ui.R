@@ -1,14 +1,15 @@
-library(leaflet)
-library(shiny)
-library(rgdal)
 library(dplyr)
 library(stringr)
 library(tidyr)
 library(lubridate)
+library(rgdal)
+library(shiny)
 library(shinydashboard)
+library(leaflet)
 library(plotly)
 library(ggplot2)
-source('CovidAnalysis.R')
+
+source('CovidAnalysisGET.R')
 
 # Define UI for application that draws a Map
 shinyUI(dashboardPage(
@@ -61,7 +62,7 @@ shinyUI(dashboardPage(
             width = 12)),
         fluidRow(box(
             selectInput('CountriesSel', NULL, choices = c('Please select countries to plot' = '',
-                                                          sort(str_replace_all(names(DoubleTime[,-1]),
+                                                          sort(str_replace_all(names(cases[,-1]),
                                                                                '_', ' '))), multiple = TRUE),
             plotlyOutput('DoubleTimePlt'),
             width = 12)),
