@@ -5,11 +5,10 @@ library(ggplot2)
 library(stringr)
 library(rgdal)
 
+
 # Calculating the doubling time from the number of new cases
-if(!file.exists('Covid19.csv')) {
-    download.file('https://opendata.ecdc.europa.eu/covid19/casedistribution/csv',
-                  'Covid19.csv')
-}
+download.file('https://opendata.ecdc.europa.eu/covid19/casedistribution/csv',
+              'Covid19.csv')
 
 covid19 =  read.csv('Covid19.csv')
 

@@ -8,6 +8,13 @@ library(shinydashboard)
 library(leaflet)
 library(plotly)
 library(ggplot2)
+library(httr)
+library(readr)
+library(dplyr)
+library(tidyr)
+library(lubridate)
+library(stringr)
+library(rgdal)
 
 source('CovidAnalysisGET.R')
 
@@ -16,22 +23,8 @@ shinyUI(dashboardPage(
     skin = 'black',
     # Application title
     dashboardHeader(title = "Spread of a disease: Coveying exponential data", titleWidth = '90vw'),
-
-    # Sidebar with a slider input for number of bins
-    dashboardSidebar(
-        sliderInput("Date",
-                    "Select Date:",
-                    min = cases$dateRep[6],
-                    max = cases$dateRep[nrow(cases)],
-                    value = cases$dateRep[6],
-                    step = 1,
-                    timeFormat = '%d-%m' 
-                    #animate = animationOptions(interval = 5000, F),
-                    ),
-        submitButton('Submit')
-), 
-
-        # Show a plot of the generated distribution
+    dashboardSidebar(collapsed = TRUE),
+    # Information about the data & plots/figures
     dashboardBody(
         fluidRow(box(
             h4(strong('Info:')),
@@ -51,14 +44,27 @@ shinyUI(dashboardPage(
               cannot be extrapolated for long periods. So a country with a doubling time of 730 days either has a very slow spread of the disease
               or the disease is being eradicated effectively."),
             h5(strong('Visualizing the data:')),
-            p("Select the date you'd like to plot on the map by using the slider in the side panel.
-              After that click on 'Submit' to plot the data for that day. You could also focus on countries of your interest by 
+            p("Select the date you'd like to plot on the map by using the slider below the map.
+              After that, click on 'Submit' to plot the data for that day. You could also focus on countries of your interest by 
               selecting them and visualizing its doubling time over days since it reached 150 cases.
               You'd need to click submit again to update the graph"),
             width = 12)),
         fluidRow(box(
-            leafletOutput("CovidPlot"),
+            # A line about the selected date
             textOutput("Selection"),
+            # Display the map with the doubling time
+            leafletOutput("CovidPlot"),
+            # A slider to select the date and a submit button
+            sliderInput("Date",
+                        "Select Date:",
+                        min = ymd("2020-01-05"),
+                        max = Sys.Date()-1,
+                        value = ymd("2020-01-05"),
+                        step = 1,
+                        timeFormat = '%d-%m' 
+                        #animate = animationOptions(interval = 5000, F),
+            ),
+            submitButton('Submit', width = '100%'),
             width = 12)),
         fluidRow(box(
             selectInput('CountriesSel', NULL, choices = c('Please select countries to plot' = '',

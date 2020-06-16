@@ -5,8 +5,6 @@ shinyServer(function(input, output, session) {
     totCasesMA = reactive({
         invalidateLater(1*24*60*60*1000, session)
         # Calculating the doubling time from the number of new cases
-        library(httr)
-        library(readr)
         covid19 = content(GET('https://opendata.ecdc.europa.eu/covid19/casedistribution/csv'), type = 'text/csv',
                           col_types = cols(dateRep = col_character(), 
                                            day = col_double(), 
@@ -21,16 +19,16 @@ shinyServer(function(input, output, session) {
                                            continentExp = col_character()
                                            ))
         ## Wider format, Date vs Countries
-        cases = pivot_wider(covid19, dateRep, names_from = countriesAndTerritories, values_from = cases)%>%
+        Cases = pivot_wider(covid19, dateRep, names_from = countriesAndTerritories, values_from = cases)%>%
             mutate(dateRep = dmy(dateRep))
-        cases[is.na(cases)] = 0
-        cases = cases[order(cases$dateRep),]
+        Cases[is.na(Cases)] = 0
+        Cases = Cases[order(Cases$dateRep),]
         
-        totCases = cbind(cases[,1],cumsum(cases[,-1]))
+        totCases = cbind(Cases[,1],cumsum(Cases[,-1]))
         ToCasesMA = apply(totCases[,-1], 2, ma)%>%
             as.data.frame%>%
             +1 # +1 to help with calculating the Log10
-        ToCasesMA = cbind(cases[,1],ToCasesMA)
+        ToCasesMA = cbind(Cases[,1],ToCasesMA)
         patterns = c('Bona', 'Ver', 'Ivo', 'Cur', 'Cze', '^D.*Congo', 'Falkland', 'Guinea_B', 'Holy', 'pale',
                      'Russia', 'Timor', 'Turks', 'Tanzania', 'America', 's_Virgin')
         indexes = mapply(grep, pattern = patterns, MoreArgs = list(x = names(ToCasesMA), ignore.case = TRUE))
@@ -53,10 +51,11 @@ shinyServer(function(input, output, session) {
         ## Large numbers mean a very flat curve and 
         ## negative numbers mean the R0 is less than 1 so it'll never double
         doubleTime[which((doubleTime>365.25*2)|(doubleTime<0), arr.ind = T)] = 365.25*2
-        doubleTime = cbind(cases[-1,1], doubleTime)
-        
+
         ## Remove the first four days (Lost due to Moving average of 5 days)
         doubleTime = doubleTime%>%
+            mutate(dateRep = totCasesMA()$dateRep[-1])%>%
+            select(dateRep, everything())%>%
             filter(!is.na(Afghanistan))
         doubleTime[,-1] = log10(doubleTime[,-1]) # Plot on a log scale as smaller values are of interest
         
@@ -86,8 +85,8 @@ shinyServer(function(input, output, session) {
     })
     ## defining the labels for each country in the map
     Labels = reactive({
-        paste('<p>',DataPlotOrdered()$CountryName, '</p>',
-              '<p>', 'Doubling time: ', round(10^DataPlotOrdered()$TwoTime, 1), ' days','</p>', sep = '')%>%
+        paste0('<p>',DataPlotOrdered()$CountryName, '</p>',
+              '<p>Doubling time: ', round(10^DataPlotOrdered()$TwoTime, 1), ' days</p>')%>%
         lapply(htmltools::HTML)
     })
     # draw the map
